@@ -4,9 +4,30 @@
 
 @layer components {
   /* these heights for main are based off the heights used for nav bar */
-  .main {
-    @apply relative w-full  p-4 mt-[3.5rem] sm:mt-[4rem] md:mt-[4.5rem] lg:mt-[5rem] min-h-[calc(100vh-3.5rem)] sm:min-h-[calc(100vh-4rem)] md:min-h-[calc(100vh-4.5rem)] lg:min-h-[calc(100vh-5rem)];
+  .nav-styles {
+    @apply h-[3.5rem] sm:h-[4em] md:h-[4.5rem] lg:h-[5rem] fixed top-0 z-[100];
   }
+
+  .main {
+    @apply relative w-full padding-container mt-[3.5rem] sm:mt-[4rem] md:mt-[4.5rem] lg:mt-[5rem] min-h-[calc(100vh-3.5rem)] sm:min-h-[calc(100vh-4rem)] md:min-h-[calc(100vh-4.5rem)] lg:min-h-[calc(100vh-5rem)];
+  }
+
+  .padding-container {
+    @apply p-4 sm:p-5 md:p-6 lg:p-8;
+  }
+
+  .padding-container-x {
+    @apply px-4 sm:px-5 md:px-6 lg:px-8;
+  }
+
+  .max-width-container {
+    @apply w-full flex-center;
+  }
+
+  .max-width-child {
+    @apply h-full w-full max-w-[1440px];
+  }
+
   .flex-center {
     @apply flex justify-center items-center;
   }
@@ -33,10 +54,6 @@
 
   .grid-center {
     @apply grid place-items-center;
-  }
-
-  .padding-container {
-    @apply px-6 lg:px-20 py-4 lg:py-8;
   }
 
   .gradient-primary {
