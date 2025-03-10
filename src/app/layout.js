@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: 'My App',
+  title: 'Marketing Matchmaker',
   description: '',
 };
 
