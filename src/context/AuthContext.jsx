@@ -19,9 +19,6 @@ export function AuthProvider({ children }) {
 
       console.log({ userData });
 
-      // Clear registration email from session
-      setEmail('');
-
       return { success: true };
     } catch (error) {
       console.error('Signup failed', error);
