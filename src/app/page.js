@@ -4,11 +4,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import HeroForm from '@/components/HeroForm';
+import HeroForm from '@/components/auth/HeroForm';
 
 export default function Home() {
-  const [email, setEmail] = useState('');
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
