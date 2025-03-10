@@ -19,7 +19,9 @@ import {
 
 // Define validation schema with Zod
 const signupSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
+  businessName: z
+    .string()
+    .min(2, 'Business name must be at least 2 characters'),
   phone: z.string().min(10, 'Please enter a valid phone number'),
   password: z
     .string()
@@ -68,7 +70,7 @@ const BusinessSignupForm = () => {
   const { email, signup } = useAuth();
   const router = useRouter();
   const [formData, setFormData] = useState({
-    fullName: '',
+    businessName: '',
     phone: '',
     password: '',
     confirmPassword: '',
@@ -251,18 +253,18 @@ const BusinessSignupForm = () => {
         )}
 
         <FormSection>
-          {/* Full Name */}
+          {/* Business Name */}
           <InputField
-            id="fullName"
-            name="fullName"
-            label="Full Name"
+            id="businessName"
+            name="businessName"
+            label="Business Name"
             type="text"
-            value={formData.fullName}
+            value={formData.businessName}
             onChange={handleChange}
-            placeholder="Your full name"
-            error={errors.fullName}
+            placeholder="Your business name"
+            error={errors.businessName}
             required
-            autoComplete="name"
+            autoComplete="organization"
           />
 
           {/* Phone */}
