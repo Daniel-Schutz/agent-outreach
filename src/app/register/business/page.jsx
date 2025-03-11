@@ -23,7 +23,7 @@ export default function BusinessSignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-neutral-50 dark:bg-neutral-900">
+    <div className="min-h-screen flex flex-center dark:bg-neutral-900">
       <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -40,7 +40,7 @@ export default function BusinessSignupPage() {
             </p>
           </div>
 
-          <div className="w-full dark:bg-neutral-800 rounded-lg sm:rounded-xl">
+          <div className="w-full max-w-lg">
             <BusinessSignupForm />
           </div>
         </motion.div>
