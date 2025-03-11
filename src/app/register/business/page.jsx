@@ -40,7 +40,7 @@ export default function BusinessSignupPage() {
             </p>
           </div>
 
-          <div className="w-full dark:bg-neutral-800 rounded-lg sm:rounded-xl">
+          <div className="w-full max-w-lg">
             <BusinessSignupForm />
           </div>
         </motion.div>
