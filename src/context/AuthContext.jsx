@@ -38,7 +38,7 @@ export function AuthProvider({ children }) {
       console.log(email, password);
 
       return {
-        success: success,
+        success: true,
         error: 'Logging In',
       };
     } catch (error) {

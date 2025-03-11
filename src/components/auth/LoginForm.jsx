@@ -45,7 +45,7 @@ const LoginForm = () => {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  // State for login form
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -78,8 +78,8 @@ const LoginForm = () => {
       setIsLoading(true);
       setErrors({});
 
-      // Call the login function from your AuthContext
-      const response = await login(formData, rememberMe);
+      // Call the login function from your AuthContext with separate email and password props
+      const response = await login(formData.email, formData.password);
 
       if (response && response.success) {
         // Redirect to dashboard or home page
@@ -184,24 +184,6 @@ const LoginForm = () => {
                 Forgot password?
               </Link>
             </div>
-          </div>
-
-          {/* Remember Me Checkbox */}
-          <div className="flex items-center mt-1">
-            <input
-              id="rememberMe"
-              name="rememberMe"
-              type="checkbox"
-              checked={rememberMe}
-              onChange={() => setRememberMe(!rememberMe)}
-              className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
-            />
-            <label
-              htmlFor="rememberMe"
-              className="ml-2 block text-sm text-neutral-600 dark:text-neutral-400"
-            >
-              Remember me
-            </label>
           </div>
 
           {/* Submit Button */}
