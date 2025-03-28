@@ -1,24 +1,110 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Outreach Agent
+
+A powerful email outreach automation platform that helps you connect with prospects and manage follow-up sequences.
+
+## Features
+
+- Send personalized outreach at scale
+- Automate follow-ups that feel human
+- Track email opens, clicks, and responses
+- Schedule meetings with interested prospects
+- Analyze campaign performance with detailed metrics
+
+## Tech Stack
+
+- **Frontend**: Next.js, React, Tailwind CSS
+- **Backend**: Anvil (Python)
+- **Authentication**: Custom JWT-based auth
+- **State Management**: React Context API
+- **HTTP Client**: Axios
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+ and npm
+- Anvil account with a deployed app
+
+### Setup
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/your-username/outreach-agent.git
+cd outreach-agent
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Create a `.env.local` file in the root directory:
+
+```
+NEXT_PUBLIC_API_URL="https://your-anvil-app-name.anvil.app/_/api"
+```
+
+4. Start the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Connecting to Anvil Backend
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This frontend application is designed to work with the Anvil backend for Outreach Agent. To connect them:
+
+1. Deploy the Anvil backend app provided in the repository
+2. Copy your Anvil app's URL and update the `NEXT_PUBLIC_API_URL` in `.env.local`
+3. Make sure your Anvil app has CORS configured to allow requests from your frontend domain
+
+## API Services
+
+The application uses several API services to communicate with the Anvil backend:
+
+- **Authentication**: Login, logout, registration, and session management
+- **Contacts**: Managing contact information and lists
+- **Templates**: Email templates with personalization variables
+- **Sequences**: Multi-step email sequences with scheduled timing
+- **Emails**: Sending emails and tracking interactions
+- **Meetings**: Scheduling and managing prospect meetings
+- **Reports**: Analytics and performance reporting
+
+## Folder Structure
+
+```
+outreach-agent/
+├── public/             # Static assets
+├── src/
+│   ├── app/            # Next.js app router pages
+│   ├── components/     # React components
+│   ├── context/        # React context providers
+│   ├── services/       # API services
+│   └── providers/      # Provider components
+├── .env.local          # Environment variables
+└── package.json        # Project dependencies
+```
+
+## Deployment
+
+Deploy the frontend application to your platform of choice (Vercel, Netlify, etc.):
+
+```bash
+npm run build
+```
+
+Remember to add the appropriate environment variables to your deployment environment.
+
+## Environment Variables
+
+- `NEXT_PUBLIC_API_URL`: URL of the Anvil backend API
+- `NEXT_PUBLIC_AUTH_ENABLED`: Enable/disable authentication (true/false)
+- `NEXT_PUBLIC_ENABLE_ANALYTICS`: Enable/disable analytics features
+- `NEXT_PUBLIC_ENABLE_DEBUG`: Enable/disable debug mode
 
 ## Learn More
 

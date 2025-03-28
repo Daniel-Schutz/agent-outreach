@@ -19,6 +19,7 @@ export function ThemeProvider({ children }) {
       attribute="class"
       defaultTheme="system"
       enableSystem
+      themes={['light', 'dark', 'outreach']}
     >
       {children}
     </NextThemeProvider>
