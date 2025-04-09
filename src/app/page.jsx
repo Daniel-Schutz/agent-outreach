@@ -50,8 +50,8 @@ export default function Home() {
     },
     {
       icon: <Users size={24} className="text-primary" />,
-      title: "Team Collaboration",
-      description: "Work seamlessly with your team to create, approve, and manage outreach campaigns."
+      title: "Dynamic Personalization",
+      description: "Craft hyper-personalized messages using AI-driven insights that adapt to each recipient in real time."
     },
   ];
 
@@ -125,7 +125,7 @@ export default function Home() {
                     <ArrowRight size={18} className="ml-2" />
                   </Link>
                   <Link 
-                    href="/demo" 
+                    href="/contact" 
                     className="btn-outline py-3 px-6"
                   >
                     Request a Demo
@@ -156,7 +156,7 @@ export default function Home() {
         </section>
 
         {/* Trusted By Section */}
-        <section className="py-10 border-t border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+        {/* <section className="py-10 border-t border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8">
               <p className="text-zinc-600 dark:text-zinc-400 font-medium">
@@ -164,13 +164,13 @@ export default function Home() {
               </p>
             </div>
             <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 opacity-70">
-              {/* Logos would go here - using placeholders */}
+ 
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="h-8 w-32 bg-zinc-300 dark:bg-zinc-700 rounded-md animate-pulse"></div>
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Features Section */}
         <section className="py-20">
@@ -213,7 +213,7 @@ export default function Home() {
                 What Our Customers Say
               </h2>
               <p className="text-lg text-zinc-600 dark:text-zinc-300 max-w-3xl mx-auto">
-                Join thousands of businesses that use Outreach Agent to connect with their prospects and grow their business.
+                Outreach Agent helps teams streamline their prospecting and improve engagement.
               </p>
             </div>
 
@@ -255,7 +255,7 @@ export default function Home() {
                 Ready to Transform Your Outreach Strategy?
               </h2>
               <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
-                Join thousands of successful businesses that use Outreach Agent to connect with their prospects and grow their business.
+                Join us today to streamline your outreach and improve engagement.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Link 
@@ -265,7 +265,7 @@ export default function Home() {
                   Get Started Free
                 </Link>
                 <Link 
-                  href="/demo" 
+                  href="/contact" 
                   className="bg-primary/20 hover:bg-primary/30 text-white py-3 px-6 rounded-lg font-medium transition-colors border border-white/20"
                 >
                   Request a Demo

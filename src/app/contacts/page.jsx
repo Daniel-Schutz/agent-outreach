@@ -24,17 +24,30 @@ import {
   Clock,
   Loader2,
   X,
-  AlertCircle
+  AlertCircle,
+  FileSpreadsheet
 } from 'lucide-react';
 import { contactsService } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
+import * as XLSX from 'xlsx';
 
 export default function ContactsPage() {
+  const { accountId } = useAuth();
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isBulkImportModalOpen, setIsBulkImportModalOpen] = useState(false);
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Excel Import States
+  const [excelData, setExcelData] = useState([]);
+  const [excelFile, setExcelFile] = useState(null);
+  const [importProgress, setImportProgress] = useState(0);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importResults, setImportResults] = useState({ success: 0, failed: 0, total: 0 });
+  const [importErrors, setImportErrors] = useState([]);
   
   // Form state for new contact
   const [newContact, setNewContact] = useState({
@@ -62,12 +75,15 @@ export default function ContactsPage() {
     const fetchContacts = async () => {
       try {
         setLoading(true);
+        console.log('Fetching contacts with account ID:', accountId);
         const response = await contactsService.getContacts();
         
         if (response.success) {
           setContacts(response.contacts || []);
+          console.log('Successfully fetched contacts for account ID:', accountId);
         } else {
           setError(response.error || 'Failed to load contacts');
+          console.error('Error fetching contacts for account ID:', accountId, response.error);
         }
       } catch (error) {
         setError('An unexpected error occurred');
@@ -78,7 +94,12 @@ export default function ContactsPage() {
     };
 
     fetchContacts();
-  }, []);
+  }, [accountId]);
+
+  // Log accountId to console when contacts page loads
+  useEffect(() => {
+    console.log('Contacts - Account ID:', accountId);
+  }, [accountId]);
 
   // Filter contacts based on active tab and search query
   const filteredContacts = contacts.filter(contact => {
@@ -117,11 +138,18 @@ export default function ContactsPage() {
     }
     
     try {
-      const response = await contactsService.createContact(newContact);
+      console.log('Creating contact with account ID:', accountId);
+      const contactData = {
+        ...newContact,
+        accountId // Include accountId in the contact data
+      };
+      
+      const response = await contactsService.createContact(contactData);
       
       if (response.success) {
         // Add the new contact to the list
         setContacts([...contacts, response.contact]);
+        console.log('Successfully created contact for account ID:', accountId);
         
         // Close modal and reset form
         setIsCreateModalOpen(false);
@@ -134,6 +162,7 @@ export default function ContactsPage() {
         setFormErrors({});
       } else {
         setFormErrors({ general: response.error || 'Failed to create contact' });
+        console.error('Error creating contact for account ID:', accountId, response.error);
       }
     } catch (error) {
       setFormErrors({ general: 'An unexpected error occurred' });
@@ -214,6 +243,118 @@ export default function ContactsPage() {
     }
   };
 
+  // Handle Excel file upload
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setExcelFile(file);
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        // Get first sheet
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        
+        // Convert to JSON
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        
+        // Map data to match our contact schema
+        const mappedData = jsonData.map(row => ({
+          full_name: row.full_name || row.name || row.fullName || row['Full Name'] || '',
+          email: row.email || row.Email || row['Email Address'] || '',
+          email_confidence: row.email_confidence || row['Email Confidence'] || '',
+          tags: row.tags ? (typeof row.tags === 'string' ? row.tags.split(',') : row.tags) : []
+        }));
+        
+        setExcelData(mappedData);
+      } catch (error) {
+        console.error('Error parsing Excel file:', error);
+        setImportErrors(['Invalid Excel file format. Please check your file and try again.']);
+      }
+    };
+    
+    reader.readAsArrayBuffer(file);
+  };
+  
+  // Process bulk import
+  const handleBulkImport = async () => {
+    if (excelData.length === 0) {
+      setImportErrors(['No data found in the Excel file. Please check your file and try again.']);
+      return;
+    }
+    
+    setIsImporting(true);
+    setImportProgress(0);
+    setImportResults({ success: 0, failed: 0, total: excelData.length });
+    setImportErrors([]);
+    
+    const importResults = { success: 0, failed: 0, total: excelData.length };
+    const errors = [];
+    
+    for (let i = 0; i < excelData.length; i++) {
+      const contact = excelData[i];
+      
+      // Validate contact
+      if (!contact.full_name || !contact.email) {
+        importResults.failed++;
+        errors.push(`Row ${i + 1}: Missing required fields (name or email)`);
+        setImportProgress(Math.round(((i + 1) / excelData.length) * 100));
+        setImportResults({ ...importResults });
+        continue;
+      }
+      
+      try {
+        // Create contact with accountId
+        const response = await contactsService.createContact({
+          ...contact,
+          accountId
+        });
+        
+        if (response.success) {
+          importResults.success++;
+          
+          // Add to contacts list if created successfully
+          if (response.contact) {
+            setContacts(prevContacts => [...prevContacts, response.contact]);
+          }
+        } else {
+          importResults.failed++;
+          errors.push(`Row ${i + 1} (${contact.email}): ${response.error || 'Unknown error'}`);
+        }
+      } catch (error) {
+        importResults.failed++;
+        errors.push(`Row ${i + 1} (${contact.email}): ${error.message || 'Unknown error'}`);
+      }
+      
+      // Update progress
+      setImportProgress(Math.round(((i + 1) / excelData.length) * 100));
+      setImportResults({ ...importResults });
+    }
+    
+    setImportErrors(errors);
+    setIsImporting(false);
+  };
+  
+  // Reset import state
+  const resetImport = () => {
+    setExcelData([]);
+    setExcelFile(null);
+    setImportProgress(0);
+    setImportResults({ success: 0, failed: 0, total: 0 });
+    setImportErrors([]);
+  };
+  
+  // Close import modal and reset state
+  const closeBulkImportModal = () => {
+    setIsBulkImportModalOpen(false);
+    resetImport();
+  };
+
   return (
     <div className="flex h-screen bg-zinc-50 dark:bg-zinc-900">
       {/* Main Content */}
@@ -234,13 +375,23 @@ export default function ContactsPage() {
               />
             </div>
             
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
-            >
-              <PlusCircle size={18} className="mr-2" />
-              New Contact
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setIsBulkImportModalOpen(true)}
+                className="flex items-center px-4 py-2 bg-zinc-100 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+              >
+                <FileSpreadsheet size={18} className="mr-2" />
+                Bulk Import
+              </button>
+              
+              <button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+              >
+                <PlusCircle size={18} className="mr-2" />
+                New Contact
+              </button>
+            </div>
           </div>
         </header>
         
@@ -446,6 +597,203 @@ export default function ContactsPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Bulk Import Modal */}
+      {isBulkImportModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-zinc-200 dark:border-zinc-700">
+              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Bulk Import Contacts</h2>
+              <button 
+                onClick={closeBulkImportModal}
+                className="text-zinc-400 hover:text-zinc-500 dark:text-zinc-500 dark:hover:text-zinc-400"
+                disabled={isImporting}
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 130px)' }}>
+              {!excelFile ? (
+                <div className="text-center">
+                  <FileSpreadsheet className="h-16 w-16 text-zinc-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">Upload Excel File</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400 mb-6">
+                    Upload an Excel file with contact information. The file should have columns for name and email at minimum.
+                  </p>
+                  
+                  <div className="flex flex-col items-center space-y-4">
+                    <label 
+                      htmlFor="excel-upload" 
+                      className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors cursor-pointer"
+                    >
+                      Choose Excel File
+                    </label>
+                    <input 
+                      id="excel-upload" 
+                      type="file" 
+                      accept=".xlsx,.xls,.csv" 
+                      onChange={handleFileUpload} 
+                      className="hidden"
+                    />
+                    
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Supported formats: .xlsx, .xls, .csv
+                    </p>
+                  </div>
+                </div>
+              ) : excelData.length > 0 && !isImporting && importResults.total === 0 ? (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+                      {excelData.length} contacts found
+                    </h3>
+                    <button
+                      onClick={resetImport}
+                      className="text-primary hover:text-primary/80 text-sm"
+                    >
+                      Change File
+                    </button>
+                  </div>
+                  
+                  <div className="border border-zinc-200 dark:border-zinc-700 rounded-md overflow-hidden mb-6">
+                    <div className="max-h-60 overflow-y-auto">
+                      <table className="w-full">
+                        <thead className="bg-zinc-50 dark:bg-zinc-700/50 sticky top-0">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase">Name</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase">Email</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-200 dark:divide-zinc-700">
+                          {excelData.slice(0, 10).map((contact, index) => (
+                            <tr key={index} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/80">
+                              <td className="px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100">{contact.full_name}</td>
+                              <td className="px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300">{contact.email}</td>
+                            </tr>
+                          ))}
+                          {excelData.length > 10 && (
+                            <tr>
+                              <td colSpan="2" className="px-4 py-2 text-sm text-zinc-500 dark:text-zinc-400 text-center italic">
+                                ...and {excelData.length - 10} more contacts
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-md mb-6">
+                    <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                      <AlertCircle size={16} className="inline-block mr-2 text-amber-500" />
+                      Each contact will be created individually. This process may take some time depending on the number of contacts.
+                    </p>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      onClick={closeBulkImportModal}
+                      className="px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleBulkImport}
+                      className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+                    >
+                      Start Import
+                    </button>
+                  </div>
+                </div>
+              ) : isImporting || importResults.total > 0 ? (
+                <div>
+                  <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-4">
+                    {isImporting ? 'Importing Contacts...' : 'Import Complete'}
+                  </h3>
+                  
+                  <div className="mb-6">
+                    <div className="flex justify-between text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+                      <span>{isImporting ? `${importProgress}% complete` : 'Completed'}</span>
+                      <span>{importResults.success} of {importResults.total} contacts</span>
+                    </div>
+                    <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2.5">
+                      <div 
+                        className="bg-primary h-2.5 rounded-full" 
+                        style={{ width: `${importProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col space-y-2 mb-6">
+                    <div className="flex items-center">
+                      <CheckCircle size={16} className="text-green-500 mr-2" />
+                      <span className="text-zinc-700 dark:text-zinc-300">
+                        {importResults.success} contacts successfully imported
+                      </span>
+                    </div>
+                    
+                    {importResults.failed > 0 && (
+                      <div className="flex items-center">
+                        <XCircle size={16} className="text-red-500 mr-2" />
+                        <span className="text-zinc-700 dark:text-zinc-300">
+                          {importResults.failed} contacts failed to import
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {importErrors.length > 0 && !isImporting && (
+                    <div className="mb-6">
+                      <h4 className="text-md font-medium text-zinc-900 dark:text-zinc-100 mb-2">Errors</h4>
+                      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 max-h-40 overflow-y-auto">
+                        <ul className="list-disc list-inside text-sm text-red-700 dark:text-red-300">
+                          {importErrors.map((error, index) => (
+                            <li key={index}>{error}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-end">
+                    {isImporting ? (
+                      <button
+                        disabled
+                        className="px-4 py-2 bg-zinc-300 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400 rounded-md cursor-not-allowed"
+                      >
+                        <Loader2 size={16} className="inline mr-2 animate-spin" />
+                        Importing...
+                      </button>
+                    ) : (
+                      <button
+                        onClick={closeBulkImportModal}
+                        className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+                      >
+                        Done
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">No valid data found</h3>
+                  <p className="text-zinc-600 dark:text-zinc-400 mb-6">
+                    The uploaded file does not contain valid contact data. Please check your file format and try again.
+                  </p>
+                  <button
+                    onClick={resetImport}
+                    className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

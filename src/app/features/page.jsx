@@ -16,7 +16,9 @@ import {
   Database,
   LineChart,
   Settings,
-  PhoneCall
+  PhoneCall,
+  FileSpreadsheet,
+  CheckCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
@@ -62,15 +64,15 @@ export default function FeaturesPage() {
       ]
     },
     {
-      title: "Team Collaboration",
+      title: "Dynamic Personalization",
       icon: <Users size={24} className="text-primary" />,
-      description: "Work seamlessly with your team to create and manage outreach campaigns",
+      description: "Craft hyper-personalized messages using AI-driven insights that adapt to each recipient in real time",
       features: [
-        "Role-based permissions",
-        "Team performance analytics",
-        "Shared templates library",
-        "Approval workflows",
-        "Activity logs and audit trails"
+        "Recipient-specific content customization",
+        "Behavioral data integration",
+        "Dynamic field insertion",
+        "Personalized follow-up sequences",
+        "Engagement-based content adaptation"
       ]
     }
   ];
@@ -78,44 +80,39 @@ export default function FeaturesPage() {
   // Additional features in a different format
   const additionalFeatures = [
     {
-      title: "Automation Workflows",
-      icon: <Zap size={20} />,
-      description: "Create complex automation rules based on recipient behavior and campaign performance"
+      title: "Bulk Contact Import",
+      icon: <FileSpreadsheet size={20} />,
+      description: "Import contacts in bulk from Excel files to quickly populate your outreach database"
     },
     {
-      title: "CRM Integration",
-      icon: <Database size={20} />,
-      description: "Seamlessly connect with popular CRM platforms like Salesforce, HubSpot, and Pipedrive"
+      title: "Email Templates",
+      icon: <MessageSquare size={20} />,
+      description: "Create and save reusable email templates for consistent and efficient communication"
     },
     {
-      title: "Multi-Channel Support",
-      icon: <Globe size={20} />,
-      description: "Extend your outreach beyond email with SMS, social, and direct mail integration"
+      title: "Contact Management",
+      icon: <Users size={20} />,
+      description: "Organize contacts with tags, status filters, and detailed tracking of engagement history"
+    },
+    {
+      title: "Campaign Tracking",
+      icon: <Mail size={20} />,
+      description: "Monitor active, paused, and completed campaigns with detailed performance metrics"
     },
     {
       title: "Template Library",
       icon: <Layers size={20} />,
-      description: "Access a vast library of proven templates for various industries and use cases"
+      description: "Access and manage your library of email templates with favorites for quick access"
     },
     {
-      title: "Advanced Security",
-      icon: <Shield size={20} />,
-      description: "Enterprise-grade security with SOC 2 compliance, data encryption, and 2FA"
+      title: "Status Tracking",
+      icon: <CheckCircle size={20} />,
+      description: "Track contact statuses including In Sequence, Contacted, No Response, and Do Not Contact"
     },
     {
-      title: "API Access",
-      icon: <Settings size={20} />,
-      description: "Build custom integrations with our comprehensive API and developer tools"
-    },
-    {
-      title: "Live Chat Support",
-      icon: <MessageSquare size={20} />,
-      description: "Get help when you need it with our responsive support team available via chat"
-    },
-    {
-      title: "Performance Insights",
-      icon: <LineChart size={20} />,
-      description: "Receive AI-powered recommendations to improve your campaign performance"
+      title: "Performance Dashboard",
+      icon: <BarChart size={20} />,
+      description: "View key metrics and campaign results to measure and improve your outreach effectiveness"
     }
   ];
 
@@ -146,9 +143,9 @@ export default function FeaturesPage() {
                 >
                   View Pricing
                 </Link>
-                <Link
-                  href="/demo"
-                  className="btn-outline py-3 px-6"
+                <Link 
+                  href="/contact" 
+                  className="btn-outline flex-center whitespace-nowrap"
                 >
                   Request a Demo
                 </Link>
@@ -235,44 +232,6 @@ export default function FeaturesPage() {
           </div>
         </section>
 
-        {/* Integrations Section */}
-        <section className="py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold mb-4">
-                Seamless Integrations
-              </h2>
-              <p className="text-lg text-zinc-600 dark:text-zinc-300 max-w-3xl mx-auto">
-                Connect Outreach Agent with your favorite tools and platforms for a smooth workflow.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8">
-              {Array.from({ length: 12 }).map((_, index) => (
-                <motion.div
-                  key={index}
-                  className="flex-center aspect-square bg-white dark:bg-zinc-800 rounded-xl p-4 shadow-sm border border-zinc-200 dark:border-zinc-700"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: index * 0.03 }}
-                  viewport={{ once: true }}
-                >
-                  <div className="h-12 w-12 bg-zinc-200 dark:bg-zinc-700 rounded animate-pulse"></div>
-                </motion.div>
-              ))}
-            </div>
-
-            <div className="text-center mt-12">
-              <Link href="/integrations" className="inline-flex items-center text-primary hover:text-primary/80 font-medium">
-                View all integrations
-                <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-        </section>
-
         {/* CTA Section */}
         <section className="py-20 bg-zinc-50 dark:bg-zinc-900/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -297,8 +256,8 @@ export default function FeaturesPage() {
                   Get Started Free
                 </Link>
                 <Link 
-                  href="/demo" 
-                  className="bg-primary/20 hover:bg-primary/30 text-white py-3 px-6 rounded-lg font-medium transition-colors border border-white/20"
+                  href="/contact" 
+                  className="btn-outline py-3 px-6 text-white hover:bg-white/10 hover:text-white"
                 >
                   Request a Demo
                 </Link>
@@ -306,7 +265,7 @@ export default function FeaturesPage() {
               <div className="mt-6 text-white/80 text-sm">
                 <div className="flex items-center justify-center">
                   <PhoneCall size={16} className="mr-2" />
-                  <span>Want to talk to sales? Call us at +1 (555) 123-4567</span>
+                  <span>Want to talk to sales? Call us at +1 (660) 292-1813</span>
                 </div>
               </div>
             </motion.div>

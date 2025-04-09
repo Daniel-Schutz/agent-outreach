@@ -5,45 +5,17 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { authService } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginForm() {
   const router = useRouter();
+  const { login } = useAuth(); // Use the login function from AuthContext
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [loginError, setLoginError] = useState('');
-
-  // Função para verificar e-mail no Anvil
-  const checkEmailExists = async (email) => {
-    try {
-      // Implementação da verificação do e-mail
-      // Esta é uma função de simulação - você precisa implementar a chamada real à API Anvil
-      const response = await fetch('https://outreach-agent.anvil.app/_/api/check_email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      return data.exists;
-      
-    } catch (error) {
-      console.error('Error checking email:', error);
-      
-      // Para desenvolvimento/testes - simular resposta quando API não está disponível
-      const validEmails = ['demo@example.com', 'test@example.com', 'user@example.com'];
-      return validEmails.includes(email);
-    }
-  };
 
   // Simple email validation
   const validateEmail = (email) => {
@@ -61,9 +33,8 @@ export default function LoginForm() {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (!password) {
-      newErrors.password = 'Password is required';
-    }
+    // A senha não é mais um campo obrigatório
+    // Removemos a validação da senha
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -81,30 +52,17 @@ export default function LoginForm() {
       setIsLoading(true);
       setLoginError('');
 
-      // Verificar se o e-mail existe
-      const emailExists = await checkEmailExists(email);
+      // Use the login function from AuthContext directly
+      // It will handle both check_email and get_user in sequence
+      console.log('Proceeding with login flow...');
+      const result = await login(email, password);
       
-      if (!emailExists) {
-        setLoginError('Email not found. Please check your email address.');
-        return;
-      }
-
-      // Para demo - verificação simplificada da senha
-      // Em produção, isso seria substituído por uma API de autenticação
-      if (email === 'demo@example.com' && password === 'demo123') {
-        // Armazenar usuário no localStorage
-        localStorage.setItem('token', 'demo-token'); // Token simulado para autenticação
-        localStorage.setItem('user', JSON.stringify({
-          name: 'Demo User',
-          email,
-          role: 'user'
-        }));
-        
-        // Redirecionar para dashboard
+      if (result.success) {
+        // Login successful, navigate to dashboard
         router.push('/dashboard');
       } else {
-        // Mostrar erro de credenciais inválidas
-        setLoginError('Incorrect password. Please try again.');
+        // Display error message
+        setLoginError(result.error);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -188,7 +146,7 @@ export default function LoginForm() {
               htmlFor="password"
               className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
             >
-              Password
+              Password <span className="text-xs text-zinc-500">(optional)</span>
             </label>
             <Link
               href="/forgot-password"
@@ -203,7 +161,7 @@ export default function LoginForm() {
               name="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
-              placeholder="Enter your password"
+              placeholder="Any password will work"
               className={`block w-full p-3 pr-10 border ${
                 errors.password
                   ? 'border-red-500'
@@ -257,11 +215,13 @@ export default function LoginForm() {
         >
           {isLoading ? (
             <>
-              <Loader2 size={20} className="animate-spin mr-2" />
+              <Loader2 className="animate-spin mr-2" size={18} />
               Logging in...
             </>
           ) : (
-            'Log In'
+            <>
+              Continue with Email
+            </>
           )}
         </button>
       </form>

@@ -17,6 +17,7 @@ const Navbar = () => {
     { name: 'Features', href: '/features' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'About', href: '/about' },
+    { name: 'Contact', href: '/contact' },
   ];
 
   const toggleMenu = () => setIsOpen(!isOpen);

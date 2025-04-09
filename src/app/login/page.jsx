@@ -199,12 +199,7 @@ export default function LoginPage() {
                       MP
                     </div>
                   </div>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                      1,000+ professionals
-                    </span>{' '}
-                    use Outreach Agent daily
-                  </p>
+
                 </div>
               </div>
             </motion.div>

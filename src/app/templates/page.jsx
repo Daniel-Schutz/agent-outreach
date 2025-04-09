@@ -26,8 +26,10 @@ import {
   X
 } from 'lucide-react';
 import { templatesService } from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function TemplatesPage() {
+  const { accountId } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [templates, setTemplates] = useState([]);
@@ -36,7 +38,7 @@ export default function TemplatesPage() {
   
   // Form state for new template
   const [newTemplate, setNewTemplate] = useState({
-    msgTemplateId: '',
+    templateName: '',
     msg_subject: '',
     msg_body: ''
   });
@@ -59,7 +61,7 @@ export default function TemplatesPage() {
     const fetchTemplates = async () => {
       try {
         setLoading(true);
-        const response = await templatesService.getTemplates();
+        const response = await templatesService.getTemplates(accountId);
         if (response.success) {
           setTemplates(response.templates || []);
         } else {
@@ -74,7 +76,12 @@ export default function TemplatesPage() {
     };
 
     fetchTemplates();
-  }, []);
+  }, [accountId]);
+
+  // Log accountId to console when templates page loads
+  useEffect(() => {
+    console.log('Templates - Account ID:', accountId);
+  }, [accountId]);
 
   // Filter templates based on search query
   const filteredTemplates = templates.filter(template => {
@@ -85,7 +92,7 @@ export default function TemplatesPage() {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return (
-        template.msgTemplateId?.toLowerCase().includes(query) ||
+        template.templateName?.toLowerCase().includes(query) ||
         template.msg_subject?.toLowerCase().includes(query) ||
         template.msg_body?.toLowerCase().includes(query)
       );
@@ -123,7 +130,7 @@ export default function TemplatesPage() {
     
     // Validate form
     const errors = {};
-    if (!newTemplate.msgTemplateId.trim()) errors.msgTemplateId = 'Template ID is required';
+    if (!newTemplate.templateName.trim()) errors.templateName = 'Template Name is required';
     if (!newTemplate.msg_subject.trim()) errors.msg_subject = 'Subject is required';
     if (!newTemplate.msg_body.trim()) errors.msg_body = 'Body is required';
     
@@ -134,12 +141,12 @@ export default function TemplatesPage() {
     
     try {
       const templateData = {
-        msgTemplateId: newTemplate.msgTemplateId,
+        templateName: newTemplate.templateName,
         msg_subject: newTemplate.msg_subject,
         msg_body: newTemplate.msg_body
       };
       
-      const response = await templatesService.createTemplate(templateData);
+      const response = await templatesService.createTemplate(accountId, templateData);
       
       if (response.success) {
         // Add the new template to the list
@@ -148,7 +155,7 @@ export default function TemplatesPage() {
         // Close modal and reset form
         setIsCreateModalOpen(false);
         setNewTemplate({
-          msgTemplateId: '',
+          templateName: '',
           msg_subject: '',
           msg_body: ''
         });
@@ -267,7 +274,7 @@ export default function TemplatesPage() {
                     <div className="flex items-start justify-between">
                       <div>
                         <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-50 line-clamp-1">
-                          {template?.msgTemplateId || 'Untitled Template'}
+                          {template?.templateName || 'Untitled Template'}
                         </h3>
                       </div>
                       <button
@@ -353,19 +360,19 @@ export default function TemplatesPage() {
                 )}
                 
                 <div className="mb-4">
-                  <label htmlFor="msgTemplateId" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                    Template ID <span className="text-red-500">*</span>
+                  <label htmlFor="templateName" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                    Template Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    id="msgTemplateId"
-                    name="msgTemplateId"
-                    value={newTemplate.msgTemplateId}
+                    id="templateName"
+                    name="templateName"
+                    value={newTemplate.templateName}
                     onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border ${formErrors.msgTemplateId ? 'border-red-500' : 'border-zinc-300 dark:border-zinc-600'} rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-primary`}
+                    className={`w-full px-3 py-2 border ${formErrors.templateName ? 'border-red-500' : 'border-zinc-300 dark:border-zinc-600'} rounded-md bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-primary`}
                   />
-                  {formErrors.msgTemplateId && (
-                    <p className="mt-1 text-sm text-red-500">{formErrors.msgTemplateId}</p>
+                  {formErrors.templateName && (
+                    <p className="mt-1 text-sm text-red-500">{formErrors.templateName}</p>
                   )}
                 </div>
                 

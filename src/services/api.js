@@ -11,6 +11,9 @@ const api = axios.create({
   },
 });
 
+// Export the api instance explicitly as a named export
+export { api };
+
 // Add interceptor to include auth token in requests
 api.interceptors.request.use(
   (config) => {
@@ -80,11 +83,78 @@ export const authService = {
   },
 };
 
+// User API
+export const userService = {
+  getUserData: async () => {
+    try {
+      const accountId = localStorage.getItem('accountId');
+      
+      if (!accountId) {
+        console.error('getUserData: No account ID found in localStorage');
+        return {
+          success: false,
+          error: 'No account ID found'
+        };
+      }
+      
+      console.log('getUserData: Fetching user data with accountId:', accountId);
+      console.log('getUserData: Making POST request to:', API_URL + '/get_user');
+      
+      // Prepare request body with accountId
+      const requestBody = { accountId };
+      console.log('getUserData: Request body:', requestBody);
+      
+      // Make POST request with accountId in the request body
+      const response = await api.post('/get_user', requestBody);
+      
+      console.log('getUserData: Response received:', response);
+      
+      if (response.data && response.data.exists) {
+        console.log('getUserData: User data found:', response.data);
+        // Store user data in localStorage for easy access across the app
+        localStorage.setItem('userData', JSON.stringify(response.data));
+        return {
+          success: true,
+          userData: response.data
+        };
+      } else {
+        console.error('getUserData: User not found in response:', response.data);
+        return {
+          success: false,
+          error: response.data?.message || 'User not found'
+        };
+      }
+    } catch (error) {
+      console.error('getUserData: Error fetching user data:', error);
+      console.error('getUserData: Error details:', {
+        message: error.message,
+        stack: error.stack,
+        response: error.response?.data
+      });
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Failed to fetch user data'
+      };
+    }
+  }
+};
+
 // Contacts API
 export const contactsService = {
   getContacts: async (params = {}) => {
     try {
-      const response = await api.get('/api/get_contacts', { params });
+      // Get accountId from localStorage
+      const accountId = localStorage.getItem('accountId');
+      
+      // Include accountId in the request params
+      const requestParams = {
+        ...params,
+        accountId
+      };
+      
+      console.log('Fetching contacts with accountId:', accountId);
+      
+      const response = await api.get('/api/get_contacts', { params: requestParams });
       return response.data;
     } catch (error) {
       return {
@@ -108,7 +178,18 @@ export const contactsService = {
 
   createContact: async (contactData) => {
     try {
-      const response = await api.post('/api/post_contacts', contactData);
+      // Get accountId from localStorage
+      const accountId = localStorage.getItem('accountId');
+      
+      // Include accountId in the request body
+      const contactWithAccountId = {
+        ...contactData,
+        accountId
+      };
+      
+      console.log('Creating contact with accountId:', accountId);
+      
+      const response = await api.post('/api/post_contacts', contactWithAccountId);
       return response.data;
     } catch (error) {
       return {
@@ -157,9 +238,14 @@ export const contactsService = {
 
 // Templates API
 export const templatesService = {
-  getTemplates: async (params = {}) => {
+  getTemplates: async (accountId, params = {}) => {
     try {
-      const response = await api.get('/api/get_templates', { params });
+      const response = await api.get('/api/get_templates', { 
+        params: { 
+          accountId,
+          ...params 
+        } 
+      });
       return response.data;
     } catch (error) {
       return {
@@ -181,9 +267,12 @@ export const templatesService = {
     }
   },
   
-  createTemplate: async (templateData) => {
+  createTemplate: async (accountId, templateData) => {
     try {
-      const response = await api.post('/api/post_templates', templateData);
+      const response = await api.post('/api/post_templates', {
+        ...templateData,
+        accountId
+      });
       return response.data;
     } catch (error) {
       return {
@@ -244,9 +333,9 @@ export const sequencesService = {
     }
   },
   
-  createSequence: async (sequenceData) => {
+  createSequence: async (contacts_id, template_id, accountId) => {
     try {
-      const response = await api.post('/api/post_sequences', sequenceData);
+      const response = await api.post('/api/post_sequences', { contacts_id, template_id, accountId });
       return response.data;
     } catch (error) {
       return {
@@ -565,4 +654,69 @@ export const reportsService = {
   },
 };
 
-export default api; 
+// Campaigns API
+export const campaignsService = {
+  getCampaigns: async () => {
+    try {
+      // Get accountId from localStorage
+      const accountId = localStorage.getItem('accountId');
+      
+      console.log('Fetching campaigns with accountId:', accountId);
+      
+      const response = await api.get('/api/get_sequences', { 
+        params: { accountId } 
+      });
+      return response.data;
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Failed to fetch campaigns',
+        campaigns: []
+      };
+    }
+  },
+
+  createCampaign: async (contacts_id, template_id, accountId, sequenceData = {}) => {
+    try {
+      console.log('Creating campaign with contacts_id, template_id and accountId:', contacts_id, template_id, accountId);
+      console.log('Sequence data:', sequenceData);
+      
+      // Ensure we're using the correct parameter name for template_id (msgTemplateId)
+      const response = await api.post('/api/post_sequences', { 
+        contacts_id, 
+        msgTemplateId: template_id, 
+        accountId,
+        sequence_name: sequenceData.sequence_name || '',
+        sequence_desc: sequenceData.sequence_desc || ''
+      });
+      return response.data;
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Failed to create campaign'
+      };
+    }
+  },
+  
+  // Get messages for a specific sequence
+  getSequenceMessages: async (sequenceId) => {
+    try {
+      const accountId = localStorage.getItem('accountId');
+      console.log('Fetching messages for sequence:', sequenceId);
+      
+      const response = await api.get('/api/get_messages', { 
+        params: { 
+          sequenceId,
+          accountId 
+        } 
+      });
+      return response.data;
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Failed to fetch sequence messages',
+        messages: []
+      };
+    }
+  }
+}; 

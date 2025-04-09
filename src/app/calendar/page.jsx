@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { 
   BarChart3, 
@@ -35,8 +35,10 @@ import {
   Send,
   Loader2
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function CalendarPage() {
+  const { accountId } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState('week'); // week, month, day
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -376,6 +378,11 @@ Chris Morgan
       setIsEditModalOpen(false);
     }, 1000);
   };
+
+  // Log accountId to console when calendar page loads
+  useEffect(() => {
+    console.log('Calendar - Account ID:', accountId);
+  }, [accountId]);
 
   return (
     <div className="flex h-screen bg-zinc-50 dark:bg-zinc-900">

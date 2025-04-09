@@ -6,6 +6,7 @@ import { Loader2, AlertCircle, Phone, User, Lock, Eye, EyeOff, Check } from 'luc
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { api } from '@/services/api';
 
 const SignupForm = () => {
   const router = useRouter();
@@ -37,14 +38,14 @@ const SignupForm = () => {
     // If form has been successfully submitted, redirect to confirmation page
     if (submitted) {
       const timer = setTimeout(() => {
-        router.push('/confirmation');
+        router.push('/');
       }, 3000);
 
       return () => clearTimeout(timer);
     }
   }, [submitted, router]);
 
-  // Validação simples de email
+  // Simple email validation
   const validateEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
@@ -129,40 +130,42 @@ const SignupForm = () => {
       setIsLoading(true);
       setErrors({});
 
-      // Parse the name into first and last name (if needed)
-      const nameParts = formData.fullName.split(' ');
-      const firstName = nameParts[0];
-      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-
-      // Create user data object for registration
+      // Create user data object for registration - format according to Anvil API
       const userData = {
         email: email,
-        password: formData.password,
-        fullName: formData.fullName,
-        phone: formData.phone,
-        role: 'user',
+        full_name: formData.fullName,
+        number: formData.phone,
       };
 
-      // Call signup method from context
-      const response = await signup(userData);
+      // Use the api service to make the request
+      const response = await api.post('/api/post_account', userData);
+      const responseData = response.data;
       
-      if (response.success) {
+      if (response.status === 201 && responseData.success) {
         setSubmitted(true);
         
-        // Store user details (in a real app, this would not be needed as the API would handle it)
-        localStorage.setItem('token', 'demo-token');
+        // Store user details if needed
         localStorage.setItem('user', JSON.stringify({
-          name: userData.fullName,
+          name: userData.full_name,
           email: userData.email,
-          role: 'user'
+          accountId: responseData.account_id
         }));
+        
+        // Clear form data
+        setFormData({
+          fullName: '',
+          phone: '',
+          password: '',
+          confirmPassword: '',
+          acceptTerms: false,
+        });
       } else {
         // Show error from API
-        setErrors({ server: response.error || 'Registration failed. Please try again.' });
+        setErrors({ server: responseData.error || 'Registration failed. Please try again.' });
       }
     } catch (error) {
       console.error('Unexpected error during signup:', error);
-      setErrors({ server: 'An unexpected error occurred. Please try again.' });
+      setErrors({ server: error.response?.data?.error || 'An unexpected error occurred. Please try again.' });
     } finally {
       setIsLoading(false);
     }
@@ -220,7 +223,7 @@ const SignupForm = () => {
           Account Created!
         </h2>
         <p className="text-zinc-600 dark:text-zinc-300 mb-6">
-          Please check your email to verify your account. Redirecting to the confirmation page...
+          Your registration was successful! We will contact you soon.
         </p>
         <div className="animate-spin w-6 h-6 mx-auto">
           <Loader2 size={24} className="text-primary" />

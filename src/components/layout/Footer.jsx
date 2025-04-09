@@ -24,7 +24,7 @@ export default function Footer() {
         { name: 'About', href: '/about' },
         { name: 'Blog', href: '/blog' },
         { name: 'Careers', href: '/careers' },
-        { name: 'Press', href: '/press' },
+        { name: 'Contact', href: '/contact' },
       ],
     },
     {
@@ -61,7 +61,7 @@ export default function Footer() {
     },
     {
       name: 'Phone',
-      value: '+1 (555) 123-4567',
+      value: '+1 (660) 292-1813',
       icon: <Phone size={16} className="mr-2" />,
     },
   ];
