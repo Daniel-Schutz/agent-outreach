@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { userService } from '@/services/api';
+import { userService, authService } from '@/services/api';
 
 // Create the AuthContext
 const AuthContext = createContext({});
@@ -119,33 +119,22 @@ export const AuthProvider = ({ children }) => {
   const checkEmailExists = async (email) => {
     try {
       console.log('Checking if email exists:', email);
-      // Implementação da verificação do e-mail
-      const response = await fetch('https://outreach-agent.anvil.app/_/api/check_email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email })
-      });
+      const response = await authService.checkEmailExists(email);
       
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+      // Store accountId if available
+      if (response.exists && response.accountId) {
+        console.log('Account ID from API check_email:', response.accountId);
+        localStorage.setItem('accountId', response.accountId);
+        setAccountId(response.accountId);
       }
       
-      const data = await response.json();
-      console.log('check_email response:', data);
-      
-      // Store accountId if it exists in the response
-      if (data.exists && data.accountId) {
-        console.log('Account ID from API check_email:', data.accountId);
-        localStorage.setItem('accountId', data.accountId);
-        setAccountId(data.accountId);
-      }
-      
-      return data.exists;
+      return response.exists;
       
     } catch (error) {
       console.error('Error checking email:', error);
+      
+      // Se o erro for de CORS ou de conexão, usamos o fallback
+      console.log('Using fallback email check due to API error');
       
       // Para desenvolvimento/testes - simular resposta quando API não está disponível
       const validEmails = ['demo@example.com', 'test@example.com', 'user@example.com'];

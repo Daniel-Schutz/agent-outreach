@@ -6,7 +6,7 @@ import { Loader2, AlertCircle, Phone, User, Lock, Eye, EyeOff, Check } from 'luc
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { api } from '@/services/api';
+import { api, authService } from '@/services/api';
 
 const SignupForm = () => {
   const router = useRouter();
@@ -129,6 +129,17 @@ const SignupForm = () => {
     try {
       setIsLoading(true);
       setErrors({});
+
+      // First check if email already exists
+      const checkEmailResponse = await authService.checkEmailExists(email);
+      
+      if (checkEmailResponse.exists) {
+        setErrors({ 
+          server: 'This email is already registered. Please use a different email or try to log in.' 
+        });
+        setIsLoading(false);
+        return;
+      }
 
       // Create user data object for registration - format according to Anvil API
       const userData = {

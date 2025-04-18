@@ -36,6 +36,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import Sidebar from '@/components/dashboard/Sidebar';
 
 export default function CalendarPage() {
   const { accountId } = useAuth();
@@ -386,100 +387,64 @@ Chris Morgan
 
   return (
     <div className="flex h-screen bg-zinc-50 dark:bg-zinc-900">
+      {/* Sidebar */}
+      <Sidebar />
+      
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="flex items-center justify-between h-16 px-6 border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Email Calendar</h1>
+          <div className="flex items-center">
+            <h1 className="text-xl font-semibold text-zinc-800 dark:text-zinc-100">Calendar</h1>
+          </div>
           
           <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 dark:text-zinc-500" size={18} />
-              <input
-                type="text"
-                placeholder="Search emails..."
-                className="pl-10 pr-4 py-2 border border-zinc-200 dark:border-zinc-700 rounded-md bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+            {/* View control */}
+            <div className="flex items-center space-x-1 border border-zinc-200 dark:border-zinc-700 rounded-md bg-white dark:bg-zinc-800">
+              {['day', 'week', 'month'].map((view) => (
+                <button
+                  key={view}
+                  onClick={() => setCurrentView(view)}
+                  className={`px-3 py-1.5 text-sm ${
+                    currentView === view
+                      ? 'bg-primary text-white'
+                      : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  {view.charAt(0).toUpperCase() + view.slice(1)}
+                </button>
+              ))}
             </div>
             
+            {/* Navigation buttons */}
+            <div className="flex items-center">
+              <button
+                onClick={navigatePrevious}
+                className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700"
+              >
+                <ChevronLeft size={20} className="text-zinc-600 dark:text-zinc-300" />
+              </button>
+              <div className="mx-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                {currentMonth} {currentYear}
+              </div>
+              <button
+                onClick={navigateNext}
+                className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700"
+              >
+                <ChevronRight size={20} className="text-zinc-600 dark:text-zinc-300" />
+              </button>
+            </div>
+            
+            {/* Calendar actions */}
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+              className="flex items-center h-9 px-4 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
             >
-              <PlusCircle size={18} className="mr-2" />
-              Schedule Email
+              <PlusCircle size={16} className="mr-2" />
+              <span>New Email</span>
             </button>
           </div>
         </header>
-        
-        {/* Calendar navigation */}
-        <div className="bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700 p-4 flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <button 
-              onClick={navigatePrevious}
-              className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              onClick={() => setCurrentDate(new Date())}
-              className="px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-md"
-            >
-              Today
-            </button>
-            <button 
-              onClick={navigateNext}
-              className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-            >
-              <ChevronRight size={20} />
-            </button>
-            <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50 ml-2">
-              {currentView === 'day' 
-                ? formatDate(currentDate.toISOString().split('T')[0])
-                : `${currentMonth} ${currentYear}`}
-            </h2>
-          </div>
-          
-          <div className="flex space-x-1 bg-zinc-100 dark:bg-zinc-700 p-1 rounded-md">
-            <button
-              onClick={() => setCurrentView('day')}
-              className={`px-3 py-1 text-sm font-medium rounded-md ${
-                currentView === 'day'
-                  ? 'bg-white dark:bg-zinc-600 text-zinc-900 dark:text-zinc-50 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50'
-              }`}
-            >
-              Day
-            </button>
-            <button
-              onClick={() => setCurrentView('week')}
-              className={`px-3 py-1 text-sm font-medium rounded-md ${
-                currentView === 'week'
-                  ? 'bg-white dark:bg-zinc-600 text-zinc-900 dark:text-zinc-50 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50'
-              }`}
-            >
-              Week
-            </button>
-            <button
-              onClick={() => setCurrentView('month')}
-              className={`px-3 py-1 text-sm font-medium rounded-md ${
-                currentView === 'month'
-                  ? 'bg-white dark:bg-zinc-600 text-zinc-900 dark:text-zinc-50 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50'
-              }`}
-            >
-              Month
-            </button>
-          </div>
-          
-          <div>
-            <button className="flex items-center px-3 py-1.5 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-600 rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-600 text-sm font-medium">
-              <Filter size={16} className="mr-2" />
-              Filter
-            </button>
-          </div>
-        </div>
         
         {/* Main content */}
         <main className="flex-1 overflow-y-auto p-6">

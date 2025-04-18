@@ -70,6 +70,38 @@ export const authService = {
     }
   },
 
+  checkEmailExists: async (email) => {
+    try {
+      console.log('Checking if email exists:', email);
+      
+      // Usar fetch diretamente para evitar o problema de CORS com cabeçalhos de autorização
+      // Isso contorna o problema do interceptor que adiciona o cabeçalho Authorization
+      const response = await fetch(`${API_URL}/check_email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email })
+      });
+      
+      const data = await response.json();
+      
+      // If email exists and has accountId, store it
+      if (data.exists && data.accountId) {
+        localStorage.setItem('accountId', data.accountId);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      return {
+        success: false,
+        exists: false,
+        error: error.message || 'Failed to check email',
+      };
+    }
+  },
+
   getCurrentUser: () => {
     const userString = localStorage.getItem('user');
     if (userString) {
@@ -199,14 +231,40 @@ export const contactsService = {
     }
   },
 
-  updateContact: async (id, contactData) => {
+  updateContact: async (contactId, contactData) => {
     try {
-      const response = await api.put(`/api/contacts/put_${id}`, contactData);
+      // Include accountId in the request body
+      const accountId = localStorage.getItem('accountId');
+      const updatedContactData = {
+        ...contactData,
+        contactId,
+        accountId
+      };
+      
+      console.log('Updating contact with ID:', contactId);
+      
+      const response = await api.put('/api/update_contact', updatedContactData);
       return response.data;
     } catch (error) {
       return {
         success: false,
         error: error.response?.data?.error || 'Failed to update contact',
+      };
+    }
+  },
+
+  deleteContact: async (contactId) => {
+    try {
+      console.log('Deleting contact with ID:', contactId);
+      
+      const response = await api.delete('/api/delete_contact', {
+        params: { contactId }
+      });
+      return response.data;
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Failed to delete contact',
       };
     }
   },
@@ -282,14 +340,81 @@ export const templatesService = {
     }
   },
   
-  updateTemplate: async (id, templateData) => {
+  updateTemplate: async (templateId, templateData) => {
     try {
-      const response = await api.put(`/api/templates/put_${id}`, templateData);
-      return response.data;
+      const response = await fetch(`${API_URL}/api/update_template`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          msgTemplateId: templateId,
+          ...templateData
+        })
+      });
+      
+      // Verifica o Content-Type da resposta
+      const contentType = response.headers.get('content-type');
+      
+      // Se for JSON, analisa normalmente
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        return data;
+      } 
+      
+      // Se não for JSON mas a resposta for bem-sucedida, retorna sucesso
+      if (response.ok) {
+        return {
+          success: true,
+          message: 'Template updated successfully'
+        };
+      }
+      
+      // Se não for bem-sucedida, retorna erro
+      return {
+        success: false,
+        error: `Error updating template: ${response.status} ${response.statusText}`
+      };
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.error || 'Failed to update template',
+        error: error.message || 'Failed to update template',
+      };
+    }
+  },
+  
+  deleteTemplate: async (templateId) => {
+    try {
+      const response = await fetch(`${API_URL}/api/delete_template?msgTemplateId=${templateId}`, {
+        method: 'DELETE'
+      });
+      
+      // Verifica o Content-Type da resposta
+      const contentType = response.headers.get('content-type');
+      
+      // Se for JSON, analisa normalmente
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        return data;
+      } 
+      
+      // Se não for JSON mas a resposta for bem-sucedida, retorna sucesso
+      if (response.ok) {
+        return {
+          success: true,
+          message: 'Template deleted successfully'
+        };
+      }
+      
+      // Se não for bem-sucedida, retorna erro
+      return {
+        success: false,
+        error: `Error deleting template: ${response.status} ${response.statusText}`
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message || 'Failed to delete template',
       };
     }
   },
@@ -333,9 +458,9 @@ export const sequencesService = {
     }
   },
   
-  createSequence: async (contacts_id, template_id, accountId) => {
+  createSequence: async (sequenceData) => {
     try {
-      const response = await api.post('/api/post_sequences', { contacts_id, template_id, accountId });
+      const response = await api.post('/api/post_sequences', sequenceData);
       return response.data;
     } catch (error) {
       return {

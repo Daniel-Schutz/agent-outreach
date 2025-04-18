@@ -191,22 +191,6 @@ export default function LoginForm() {
           )}
         </div>
 
-        {/* "Remember me" checkbox */}
-        <div className="flex items-center">
-          <input
-            id="remember-me"
-            name="remember-me"
-            type="checkbox"
-            className="h-4 w-4 text-primary focus:ring-primary rounded border-zinc-300 dark:border-zinc-600 dark:bg-zinc-800/50"
-          />
-          <label
-            htmlFor="remember-me"
-            className="ml-2 block text-sm text-zinc-600 dark:text-zinc-400"
-          >
-            Remember me for 30 days
-          </label>
-        </div>
-
         {/* Submit button */}
         <button
           type="submit"

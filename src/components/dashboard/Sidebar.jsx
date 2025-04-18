@@ -36,7 +36,7 @@ export default function Sidebar() {
       }`}
     >
       {/* Logo */}
-      <div className="px-4 h-14 flex items-center border-b border-zinc-200 dark:border-zinc-700">
+      <div className="h-16 flex items-center border-b border-zinc-200 dark:border-zinc-700 px-4">
         <Link href="/dashboard" className="flex items-center">
           <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center text-white font-bold">
             OA

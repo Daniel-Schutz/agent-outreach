@@ -39,12 +39,6 @@ export default function AccountInfo() {
           </>
         )}
         
-        <div className="flex justify-between">
-          <span className="text-zinc-500 dark:text-zinc-400">Account ID:</span>
-          <span className="font-mono text-sm bg-zinc-100 dark:bg-zinc-700 px-2 py-1 rounded">
-            {accountId || 'Not available'}
-          </span>
-        </div>
       </div>
     </div>
   );
